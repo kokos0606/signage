@@ -50,6 +50,61 @@
         .quote-page .quote-text { font-size: 3rem; font-style: normal; margin-bottom: 40px; word-break: keep-all; line-height: 1.5; }
         .quote-page .quote-author { font-size: 1.8rem; }
         #loading-screen { display: flex; justify-content: center; align-items: center; font-size: 2rem; }
+
+        /* ★ 추가된 부분: 날씨 페이지 전용 스타일 */
+        .weather-page {
+            display: flex;
+            flex-direction: column;
+            background: linear-gradient(to bottom, #3a7bd5, #3a6073);
+            padding: 50px;
+        }
+        .weather-page .current-weather {
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            text-align: left;
+            flex-grow: 1;
+        }
+        .weather-page .current-weather .icon {
+            font-size: 10rem;
+            margin-right: 40px;
+        }
+        .weather-page .current-weather .details .location {
+            font-size: 2rem;
+            font-weight: bold;
+        }
+        .weather-page .current-weather .details .temp {
+            font-size: 7rem;
+            font-weight: bold;
+        }
+        .weather-page .current-weather .details .desc {
+            font-size: 2rem;
+            margin-top: -15px;
+        }
+        .weather-page .current-weather .details .minmax {
+            font-size: 1.5rem;
+            margin-top: 10px;
+        }
+        .weather-page .forecast {
+            display: flex;
+            justify-content: space-around;
+            border-top: 2px solid rgba(255,255,255,0.5);
+            padding-top: 30px;
+        }
+        .weather-page .forecast .hour {
+            text-align: center;
+        }
+        .weather-page .forecast .hour .time {
+            font-size: 1.5rem;
+        }
+        .weather-page .forecast .hour .icon {
+            font-size: 3.5rem;
+            margin: 10px 0;
+        }
+        .weather-page .forecast .hour .temp {
+            font-size: 1.8rem;
+            font-weight: bold;
+        }
     </style>
 </head>
 <body>
@@ -161,6 +216,11 @@
                 { text: '계획 없는 목표는 한낱 꿈에 불과하다. 끝까지 실행하고 점검하자.', author: '생텍쥐페리' }
             ]
         },
+   // ★ 추가된 부분: 날씨 정보 페이지
+        {
+            type: 'weather_page',
+            duration: 20
+        }
     ];
     // ====================================================================================
     // --- (주의) 여기 아래에 있는 코드는 사이니지 엔진이므로 수정하지 마세요! ---
@@ -171,12 +231,24 @@
     let clockInterval, pageTimeout;
     let infoPageDisplayCount = 0;
 
-    // ★ 추가된 부분: 점심시간인지 확인하는 함수
+    // ★ 추가된 부분: 날씨 코드에 맞는 아이콘과 한글 설명을 반환하는 함수
+    function getWeatherInfo(code) {
+        if (code === 0) return { icon: '☀️', description: '맑음' };
+        if (code >= 1 && code <= 3) return { icon: '☁️', description: '구름 조금' };
+        if (code === 45 || code === 48) return { icon: '🌫️', description: '안개' };
+        if (code >= 51 && code <= 57) return { icon: '🌧️', description: '이슬비' };
+        if (code >= 61 && code <= 67) return { icon: '🌧️', description: '비' };
+        if (code >= 71 && code <= 77) return { icon: '❄️', description: '눈' };
+        if (code >= 80 && code <= 82) return { icon: '🌦️', description: '소나기' };
+        if (code >= 85 && code <= 86) return { icon: '🌨️', description: '눈 소나기' };
+        if (code >= 95 && code <= 99) return { icon: '⛈️', description: '천둥번개' };
+        return { icon: '🤔', description: '알 수 없음' };
+    }
+
     function isLunchTime() {
         const now = new Date();
         const hours = now.getHours();
         const minutes = now.getMinutes();
-        // 점심시간: 11시 15분부터 11시 40분까지
         if (hours === 11 && minutes >= 15 && minutes <= 40) {
             return true;
         }
@@ -203,7 +275,7 @@
         return Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
     }
     
-    function renderPage(pageConfig) {
+    async function renderPage(pageConfig) { // ★ 비동기 함수로 변경
         [clockInterval, pageTimeout].forEach(id => clearInterval(id));
         let html = '';
         switch (pageConfig.type) {
@@ -245,6 +317,68 @@
                     html = `<div class="page quote-page"><div class="quote-text">"표시할 명언이 없습니다."</div><div class="quote-author">- 관리자 -</div></div>`;
                 }
                 break;
+            // ★ 추가된 부분: weather_page 렌더링 로직
+            case 'weather_page':
+                html = `<div class="page weather-page"><div id="loading-screen" class="page">날씨 정보를 불러오는 중...</div></div>`;
+                signageContainer.innerHTML = html; // 로딩 메시지 먼저 표시
+                try {
+                    // 판교 삼평동 위도, 경도
+                    const lat = 37.402;
+                    const lon = 127.105;
+                    // 시간별 예보(hourly) 추가 및 일별 예보(daily) 제거
+                    const weatherApiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul`;
+                    const response = await fetch(weatherApiUrl);
+                    const data = await response.json();
+                    
+                    const current = data.current;
+                    const hourly = data.hourly;
+                    const daily = data.daily;
+                    const currentInfo = getWeatherInfo(current.weather_code);
+
+                    // 시간별 예보 HTML 생성 로직
+                    let forecastHtml = '';
+                    const now = new Date();
+                    const currentHour = now.getHours();
+                    // 현재 시간 이후의 첫 예보 인덱스 찾기
+                    const startIndex = hourly.time.findIndex(t => new Date(t).getHours() > currentHour);
+
+                    // 앞으로 6시간 동안의 예보를 표시
+                    for(let i = startIndex; i < startIndex + 6; i++) {
+                        if (hourly.time[i]) {
+                            const hourInfo = getWeatherInfo(hourly.weather_code[i]);
+                            const date = new Date(hourly.time[i]);
+                            const timeString = `${date.getHours()}시`;
+                            forecastHtml += `
+                                <div class="hour">
+                                    <div class="time">${timeString}</div>
+                                    <div class="icon">${hourInfo.icon}</div>
+                                    <div class="temp">${Math.round(hourly.temperature_2m[i])}°</div>
+                                </div>
+                            `;
+                        }
+                    }
+
+                    html = `
+                        <div class="page weather-page">
+                            <div class="current-weather">
+                                <div class="icon">${currentInfo.icon}</div>
+                                <div class="details">
+                                    <div class="location">판교 삼평동</div>
+                                    <div class="temp">${Math.round(current.temperature_2m)}°</div>
+                                    <div class="desc">${currentInfo.description}</div>
+                                    <div class="minmax">최고 ${Math.round(daily.temperature_2m_max[0])}° / 최저 ${Math.round(daily.temperature_2m_min[0])}°</div>
+                                </div>
+                            </div>
+                            <div class="forecast">
+                                ${forecastHtml}
+                            </div>
+                        </div>
+                    `;
+                } catch (error) {
+                    console.error("날씨 정보 로딩 실패:", error);
+                    html = `<div class="page weather-page"><div id="loading-screen" class="page">날씨 정보를 가져올 수 없습니다.</div></div>`;
+                }
+                break;
         }
         signageContainer.innerHTML = html;
 
@@ -261,31 +395,24 @@
         }
     }
 
-    // ★ 수정된 부분: showNextPage 로직 전체 변경
-    function showNextPage() {
-        // 1. 현재 시간에 맞는 플레이리스트 결정
+    async function showNextPage() { // ★ 비동기 함수로 변경
         let activePlaylist;
         if (isLunchTime()) {
-            // 점심시간에는 정보 페이지와 식단표 페이지만 필터링
             activePlaylist = PLAYLIST.filter(p => p.type.startsWith('info_page') || p.imageUrl === 'images/식단표.png');
         } else {
-            // 그 외 시간에는 전체 플레이리스트 사용
             activePlaylist = PLAYLIST;
         }
 
-        // 2. 현재 페이지 인덱스가 활성화된 플레이리스트 길이를 넘지 않도록 조정
         if (currentPageIndex >= activePlaylist.length) {
             currentPageIndex = 0;
         }
         
-        // 3. 현재 페이지 렌더링
         const currentPage = activePlaylist[currentPageIndex];
-        renderPage(currentPage);
+        await renderPage(currentPage); // ★ await 추가
 
-        // 4. 다음 페이지 호출 예약
         pageTimeout = setTimeout(() => {
             currentPageIndex = (currentPageIndex + 1) % activePlaylist.length;
-            showNextPage(); // 재귀 호출로 다음 페이지 표시
+            showNextPage();
         }, currentPage.duration * 1000);
     }
 
