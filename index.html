@@ -3,27 +3,60 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>사내 디지털 사이니지</title>
+    <title>사내 디지털 사이니지 (New Year Edition)</title>
     <style>
-        /* CSS 스타일: 이 부분은 수정할 필요 없습니다. */
-        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Malgun Gothic', '맑은 고딕', sans-serif; background-color: #000; color: #fff; }
+        /* ================= 기본 스타일 ================= */
+        body, html { margin: 0; padding: 0; width: 100%; height: 100%; overflow: hidden; font-family: 'Pretendard', 'Malgun Gothic', sans-serif; background-color: #000; color: #fff; }
         #signage-container { width: 100%; height: 100%; position: relative; overflow: hidden; }
-        .page { width: 100%; height: 100%; box-sizing: border-box; }
+        .page { width: 100%; height: 100%; box-sizing: border-box; position: relative; z-index: 10; }
 
-        /* --- 레이아웃 1: 기본 정보 페이지 (사용자 요청 반영) --- */
+        /* ================= 눈 내리는 효과 ================= */
+        #snow-container {
+            position: absolute; top: 0; left: 0; width: 100%; height: 100%; pointer-events: none; z-index: 9999;
+            overflow: hidden; display: none;
+        }
+        .snowflake {
+            position: absolute; top: -10px; background: white; border-radius: 50%; opacity: 0.8;
+            animation: fall linear infinite;
+        }
+        @keyframes fall {
+            to { transform: translateY(110vh); }
+        }
+
+        /* ================= 페이지 스타일 ================= */
+        .celebration-page {
+            display: flex; flex-direction: column; justify-content: flex-end; align-items: center; text-align: center;
+            background-size: cover; background-position: center;
+            animation: zoomEffect 20s linear infinite alternate;
+        }
+        @keyframes zoomEffect {
+            from { transform: scale(1); }
+            to { transform: scale(1.1); }
+        }
+        .celebration-page .msg-container {
+            margin-bottom: 100px;
+            text-shadow: 0 4px 30px rgba(0,0,0,0.8);
+            background: rgba(0,0,0,0.3);
+            padding: 20px 40px;
+            border-radius: 15px;
+            backdrop-filter: blur(5px);
+            border: 1px solid rgba(255, 215, 0, 0.3);
+            animation: fadeUp 2s ease-out;
+        }
+        .celebration-page h2 {
+            font-size: 2rem; color: #FFD700; font-weight: 300; letter-spacing: 5px; margin: 0;
+            font-family: 'Times New Roman', serif;
+        }
+        @keyframes fadeUp {
+            from { opacity: 0; transform: translateY(30px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
         .info-page { background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: space-between; padding: 40px; transition: background-image 1.5s ease-in-out; }
         .info-page .time-date-section { position: absolute; top: 40px; left: 40px; background-color: rgba(0,0,0,0.5); padding: 20px 25px; border-radius: 10px; text-shadow: 2px 2px 4px rgba(0,0,0,0.7); }
         .info-page .time-display { font-size: 5rem; font-weight: bold; }
         .info-page .date-display, .info-page .day-display { font-size: 2rem; text-align: right; }
-        .info-page .dday-section {
-            position: absolute;
-            bottom: 40px;
-            left: 40px;
-            right: 40px;
-            display: flex;
-            justify-content: space-between;
-            align-items: flex-end;
-        }
+        .info-page .dday-section { position: absolute; bottom: 40px; left: 40px; right: 40px; display: flex; justify-content: space-between; align-items: flex-end; }
         .info-page .dday-item { background-color: rgba(0,0,0,0.5); padding: 20px; border-radius: 10px; min-width: 300px; }
         .info-page .dday-item:first-child { text-align: left; }
         .info-page .dday-item:last-child { text-align: right; }
@@ -31,11 +64,7 @@
         .info-page .dday-item .dday-value { font-size: 4rem; font-weight: bold; color: #FFD700; }
         .info-page .dday-item .target-date { font-size: 1rem; margin-top: 5px; }
 
-        /* --- ★ 추가된 부분: 레이아웃 2: 중앙 정렬 정보 페이지 --- */
-        .info-page-alt {
-            background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center;
-            background-blend-mode: multiply; background-color: rgba(0,0,0,0.5); /* 텍스트 가독성 향상 */
-        }
+        .info-page-alt { background-size: cover; background-position: center; display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; background-blend-mode: multiply; background-color: rgba(0,0,0,0.5); }
         .info-page-alt .time-display { font-size: 8rem; font-weight: bold; text-shadow: 3px 3px 6px #000; }
         .info-page-alt .date-display { font-size: 2.5rem; margin-top: -10px; text-shadow: 2px 2px 4px #000; }
         .info-page-alt .dday-section { display: flex; gap: 40px; margin-top: 40px; }
@@ -46,70 +75,138 @@
         .image-page { display: flex; justify-content: center; align-items: center; background-color: #000; }
         .image-page img { width: 100%; height: 100%; object-fit: contain; }
         .youtube-page iframe, .web-page iframe { width: 100%; height: 100%; border: none; }
-        .quote-page { display: flex; flex-direction: column; justify-content: center; align-items: center; text-align: center; padding: 50px 80px; background: #000; font-family: 'Gungsuh', '궁서', serif; }
-        .quote-page .quote-text { font-size: 3rem; font-style: normal; margin-bottom: 40px; word-break: keep-all; line-height: 1.5; }
-        .quote-page .quote-author { font-size: 1.8rem; }
-        #loading-screen { display: flex; justify-content: center; align-items: center; font-size: 2rem; }
+        
+        .weather-page { display: flex; flex-direction: column; background: linear-gradient(to bottom, #3a7bd5, #3a6073); padding: 50px; }
+        .weather-page .current-weather { display: flex; justify-content: center; align-items: center; text-align: left; flex-grow: 1; }
+        .weather-page .current-weather .icon { font-size: 10rem; margin-right: 40px; }
+        .weather-page .current-weather .details .location { font-size: 2rem; font-weight: bold; }
+        .weather-page .current-weather .details .temp { font-size: 7rem; font-weight: bold; }
+        .weather-page .current-weather .details .desc { font-size: 2rem; margin-top: -15px; }
+        .weather-page .current-weather .details .minmax { font-size: 1.5rem; margin-top: 10px; }
+        .weather-page .forecast { display: flex; justify-content: space-around; border-top: 2px solid rgba(255,255,255,0.5); padding-top: 30px; }
+        .weather-page .forecast .hour { text-align: center; }
+        .weather-page .forecast .hour .time { font-size: 1.5rem; }
+        .weather-page .forecast .hour .icon { font-size: 3.5rem; margin: 10px 0; }
+        .weather-page .forecast .hour .temp { font-size: 1.8rem; font-weight: bold; }
 
-        /* ★ 추가된 부분: 날씨 페이지 전용 스타일 */
-        .weather-page {
-            display: flex;
-            flex-direction: column;
-            background: linear-gradient(to bottom, #3a7bd5, #3a6073);
-            padding: 50px;
+        /* ================= 관리자 설정 모달 스타일 ================= */
+        #settings-btn {
+            position: fixed; bottom: 20px; right: 20px; z-index: 20000;
+            background: rgba(255, 255, 255, 0.2); color: white;
+            border: none; border-radius: 50%; width: 50px; height: 50px;
+            font-size: 24px; cursor: pointer; opacity: 0.3; transition: opacity 0.3s;
         }
-        .weather-page .current-weather {
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            text-align: left;
-            flex-grow: 1;
+        #settings-btn:hover { opacity: 1; background: rgba(255, 255, 255, 0.6); }
+
+        #config-modal {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0, 0, 0, 0.85); z-index: 20001;
+            justify-content: center; align-items: center;
         }
-        .weather-page .current-weather .icon {
-            font-size: 10rem;
-            margin-right: 40px;
+        .modal-content {
+            background: #1e1e1e; padding: 25px; border-radius: 12px; width: 90%; max-width: 900px; height: 85vh;
+            color: #fff; display: flex; flex-direction: column;
+            border: 1px solid #333; box-shadow: 0 0 30px rgba(0,0,0,0.7);
         }
-        .weather-page .current-weather .details .location {
-            font-size: 2rem;
-            font-weight: bold;
+        .modal-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 20px; border-bottom: 1px solid #333; padding-bottom: 15px; }
+        .modal-header h2 { margin: 0; font-size: 1.5rem; color: #FFD700; }
+        .modal-body { flex: 1; overflow-y: auto; padding-right: 10px; }
+
+        /* 에디터 카드 스타일 */
+        .editor-card {
+            background: #2a2a2a; border-radius: 8px; padding: 15px; margin-bottom: 15px;
+            border: 1px solid #333; display: flex; gap: 15px; align-items: flex-start;
         }
-        .weather-page .current-weather .details .temp {
-            font-size: 7rem;
-            font-weight: bold;
+        .editor-card:hover { border-color: #555; }
+        .card-order {
+            display: flex; flex-direction: column; gap: 5px; justify-content: center; align-items: center; width: 40px;
         }
-        .weather-page .current-weather .details .desc {
-            font-size: 2rem;
-            margin-top: -15px;
+        .card-content { flex: 1; display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px; }
+        
+        .form-group { display: flex; flex-direction: column; gap: 5px; }
+        .form-group label { font-size: 0.8rem; color: #aaa; }
+        .form-group input, .form-group textarea, .form-group select {
+            background: #333; border: 1px solid #444; color: #fff; padding: 8px; border-radius: 4px;
+            font-size: 0.9rem;
         }
-        .weather-page .current-weather .details .minmax {
-            font-size: 1.5rem;
-            margin-top: 10px;
+        .form-group input:focus { border-color: #FFD700; outline: none; }
+        
+        .btn-mini { padding: 4px 8px; font-size: 0.8rem; cursor: pointer; background: #444; color: #fff; border: none; border-radius: 4px; }
+        .btn-mini:hover { background: #666; }
+        .btn-delete { background: #5a2e2e; }
+        .btn-delete:hover { background: #d32f2f; }
+
+        .btn-group { display: flex; gap: 10px; justify-content: flex-end; margin-top: 20px; border-top: 1px solid #333; padding-top: 15px; }
+        .btn { padding: 10px 20px; border: none; border-radius: 5px; cursor: pointer; font-weight: bold; font-size: 1rem;}
+        .btn-save { background: #28a745; color: white; }
+        .btn-close { background: #666; color: white; }
+        .btn-reset { background: #dc3545; color: white; margin-right: auto; }
+        .btn-add { background: #007bff; color: white; }
+        .btn:hover { opacity: 0.9; transform: translateY(-1px); }
+
+        .modal-body::-webkit-scrollbar { width: 8px; }
+        .modal-body::-webkit-scrollbar-track { background: #1e1e1e; }
+        .modal-body::-webkit-scrollbar-thumb { background: #444; border-radius: 4px; }
+
+        /* 커스텀 토스트 & 확인창 */
+        #toast-message {
+            position: fixed; bottom: 80px; left: 50%; transform: translateX(-50%);
+            background: rgba(40, 167, 69, 0.9); color: white; padding: 12px 24px; border-radius: 25px;
+            font-size: 1rem; box-shadow: 0 4px 15px rgba(0,0,0,0.3); z-index: 20002;
+            opacity: 0; transition: opacity 0.5s; pointer-events: none;
         }
-        .weather-page .forecast {
-            display: flex;
-            justify-content: space-around;
-            border-top: 2px solid rgba(255,255,255,0.5);
-            padding-top: 30px;
+        #confirm-dialog {
+            display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); z-index: 20005;
+            justify-content: center; align-items: center;
         }
-        .weather-page .forecast .hour {
-            text-align: center;
+        .confirm-box {
+            background: #2a2a2a; padding: 25px; border-radius: 10px; text-align: center;
+            border: 1px solid #444; box-shadow: 0 10px 30px rgba(0,0,0,0.5); min-width: 300px;
         }
-        .weather-page .forecast .hour .time {
-            font-size: 1.5rem;
-        }
-        .weather-page .forecast .hour .icon {
-            font-size: 3.5rem;
-            margin: 10px 0;
-        }
-        .weather-page .forecast .hour .temp {
-            font-size: 1.8rem;
-            font-weight: bold;
-        }
+        .confirm-box h3 { margin-top: 0; color: #FFD700; }
+        .confirm-actions { margin-top: 20px; display: flex; justify-content: center; gap: 10px; }
     </style>
 </head>
 <body>
+    <div id="snow-container"></div>
+
     <div id="signage-container">
-        <div id="loading-screen" class="page">사이니지를 시작합니다...</div>
+        <div id="loading-screen" class="page" style="display:flex; justify-content:center; align-items:center; font-size:2rem;">
+            사이니지를 시작합니다... (New Year Edition)
+        </div>
+    </div>
+
+    <!-- 커스텀 UI 요소 -->
+    <button id="settings-btn" onclick="openConfig()" title="관리자 설정">⚙️</button>
+    <div id="toast-message">저장되었습니다!</div>
+    
+    <!-- 삭제 확인 다이얼로그 -->
+    <div id="confirm-dialog">
+        <div class="confirm-box">
+            <h3>삭제 확인</h3>
+            <p>정말 이 화면을 삭제하시겠습니까?</p>
+            <div class="confirm-actions">
+                <button class="btn btn-close" onclick="closeConfirm()">취소</button>
+                <button class="btn btn-delete" onclick="executeDelete()">삭제</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- 설정 모달 -->
+    <div id="config-modal">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h2>⚙️ 재생목록 편집</h2>
+                <button class="btn btn-add" onclick="showAddMenu()">+ 화면 추가</button>
+            </div>
+            <div class="modal-body" id="playlist-editor-container"></div>
+            <div class="btn-group">
+                <button class="btn btn-reset" onclick="resetPlaylist()">초기화</button>
+                <button class="btn btn-save" onclick="savePlaylist()">저장 및 적용</button>
+                <button class="btn btn-close" onclick="closeConfig()">닫기</button>
+            </div>
+        </div>
     </div>
 
     <script>
@@ -117,152 +214,358 @@
     // --- (★매우 중요) 사이니지 내용은 여기에서만 수정하세요! ---
     // ====================================================================================
     const PLAYLIST = [
-        // 페이지 1: 정보 화면 (D-Day, 시계, 명화 배경)
+        // 1. 새해 축하 화면 (New Year)
+        {
+            type: 'celebration_page',
+            duration: 15,
+            imageUrl: 'http://googleusercontent.com/image_generation_content/1',
+            subText: "새해 복 많이 받으세요",
+            snowEffect: true
+        },
+
+        // 2. 정보 화면 (좌측 정렬) - D-Day: 2026 New Year
         {
             type: 'info_page',
             duration: 15,
             backgroundImages: [
-                'https://images.pexels.com/photos/3293148/pexels-photo-3293148.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
-                'https://images.unsplash.com/photo-1507608869274-d3177c8bb4c7?q=80&w=2070&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D',
-           'https://images.pexels.com/photos/268533/pexels-photo-268533.jpeg?_gl=1*1a0z4v7*_ga*NjY1ODAyNTQ1LjE3NTI1NTY3OTQ.*_ga_8JE65Q40S6*czE3NTQ0NTgxMTUkbzMkZzEkdDE3NTQ0NTgxMTYkajU5JGwwJGgw'
+                'https://images.unsplash.com/photo-1543589077-47d81606c1bf?q=80&w=2574&auto=format&fit=crop',
+                'https://images.unsplash.com/photo-1576919228236-a097c32a5cd4?q=80&w=2670&auto=format&fit=crop'
             ],
             ddayTargets: [
-                { title: 'One ERP Go-Live', date: '2025-11-03' },
-                { title: 'ONE HR Go-Live', date: '2025-09-01' }
-            ]
+                { title: '2026 New Year', date: '2026-01-01' }
+            ],
+            snowEffect: true
         },
 
-        // 식단표 이미지
+        // 3. 식단표 이미지
         {
             type: 'image_page',
-            duration: 15,
-            imageUrl: 'images/식단표.png'
+            duration: 10,
+            imageUrl: 'images/식단표.png',
+            snowEffect: false
         },
 
-        // // 보안 이미지 1
-        // {
-        //     type: 'image_page',
-        //     duration: 10,
-        //     imageUrl: 'images/보안1.png'
-        // },
-
-        // 정보 화면 (새로운 중앙 정렬 레이아웃)
+        // 4. 정보 화면 (중앙 정렬)
         {
             type: 'info_page_alt',
             duration: 15,
             backgroundImage: 'https://images.pexels.com/photos/933054/pexels-photo-933054.jpeg?auto=compress&cs=tinysrgb&w=1260&h=750&dpr=1',
             ddayTargets: [
-                { title: 'One ERP Go-Live', date: '2025-11-03' },
-                { title: 'ONE HR Go-Live', date: '2025-09-01' }
-            ]
+                { title: '2026 New Year', date: '2026-01-01' }
+            ],
+            snowEffect: true
         },
 
-        // 더미식
+        // 5. 유튜브 영상 1
         {
             type: 'youtube_page',
             duration: 17,
-            videoId: '4k6Uc18iMQA'
+            videoId: '4k6Uc18iMQA',
+            snowEffect: false
         },
 
-  //       // 회의실 이미지
-  // //      {
-  // //          type: 'image_page',
-  // //          duration: 15,
-  // //          imageUrl: 'images/회의실1.png'
-  // //      },
-
-  //       // 매너
-  //       {
-  //           type: 'image_page',
-  //           duration: 15,
-  //           imageUrl: 'images/매너1.png'
-  //       },
-        // HBH 이미지
+        // 6. HBH 이미지
         {
             type: 'image_page',
             duration: 10,
-            imageUrl: 'images/1.png'
+            imageUrl: 'images/1.png',
+            snowEffect: false
         },
-        // // 냉장고 이미지
-        // {
-        //     type: 'image_page',
-        //     duration: 10,
-        //     imageUrl: 'images/냉장고.png'
-        // },
-         // HBH1
+
+        // 7. HBH1 이미지
         {
             type: 'image_page',
             duration: 10,
-            imageUrl: 'images/HBH1.png'
+            imageUrl: 'images/HBH1.png',
+            snowEffect: false
         },
-    
-        // 유튜브 영상 2
+
+        // 8. 유튜브 영상 2
         {
             type: 'youtube_page',
             duration: 16,
-            videoId: 'LuZAuQz4nlg'
+            videoId: 'LuZAuQz4nlg',
+            snowEffect: false
         },
-       
-        // 보안 이미지 2
+
+        // 9. 보안 이미지 2
         {
             type: 'image_page',
             duration: 10,
-            imageUrl: 'images/보안2.png'
+            imageUrl: 'images/보안2.png',
+            snowEffect: false
         },
-        
 
-        // // 프로젝트 명언
-        // {
-        //     type: 'quote_page',
-        //     duration: 10,
-        //     quotes: [
-        //         { text: '혼자 가면 빨리 가지만, 함께 가면 멀리 간다.', author: '아프리카 속담' },
-        //         { text: '성공은 가장 끈기 있는 사람에게 돌아간다.', author: '나폴레옹 보나파르트' },
-        //         { text: '정확한 데이터는 성공적인 프로젝트의 초석이다. 모든 디테일에 집중하자.', author: '프로젝트 팀의 다짐' }, // 수정된 부분
-        //         { text: '팀워크는 신뢰 위에 세워지고, 신뢰는 서로의 등을 맡길 수 있을 때 생겨난다.', author: '패트릭 렌시오니' },
-        //         { text: '우리의 가장 큰 약점은 포기하는 데 있다. 성공하는 가장 확실한 방법은 항상 한 번 더 시도해 보는 것이다.', author: '토마스 에디슨' },
-        //         { text: '위대한 일은 작은 일들이 함께 모여 이루어진다.', author: '빈센트 반 고흐' },
-        //         { text: '스스로의 가치를 아는 것이 모든 지혜의 시작이다.', author: '아리스토텔레스' },
-        //         { text: '계획 없는 목표는 한낱 꿈에 불과하다. 끝까지 실행하고 점검하자.', author: '생텍쥐페리' }
-        //     ]
-        // },
-   // ★ 추가된 부분: 날씨 정보 페이지
+        // 10. 날씨 정보
         {
             type: 'weather_page',
-            duration: 20
+            duration: 20,
+            snowEffect: false
         }
     ];
+
+    // --- (수정 가능한 예비 아이템들) 필요하면 위 PLAYLIST에 복사해서 넣으세요 ---
+    //
+    // // 보안 이미지 1
+    // {
+    //     type: 'image_page',
+    //     duration: 10,
+    //     imageUrl: 'images/보안1.png',
+    //     snowEffect: false
+    // },
+    //
+    // // 회의실 이미지
+    // {
+    //     type: 'image_page',
+    //     duration: 15,
+    //     imageUrl: 'images/회의실1.png',
+    //     snowEffect: false
+    // },
+    //
+    // // 매너 캠페인
+    // {
+    //     type: 'image_page',
+    //     duration: 15,
+    //     imageUrl: 'images/매너1.png',
+    //     snowEffect: false
+    // },
+
+    let currentPlaylist = [];
+    let deleteTargetIndex = -1;
+
     // ====================================================================================
-    // --- (주의) 여기 아래에 있는 코드는 사이니지 엔진이므로 수정하지 마세요! ---
+    // --- 관리자 기능 로직 ---
+    // ====================================================================================
+
+    function loadPlaylistData() {
+        const saved = localStorage.getItem('signage_playlist');
+        if (saved) {
+            try { currentPlaylist = JSON.parse(saved); } 
+            catch (e) { currentPlaylist = JSON.parse(JSON.stringify(PLAYLIST)); }
+        } else {
+            currentPlaylist = JSON.parse(JSON.stringify(PLAYLIST));
+        }
+    }
+
+    function openConfig() {
+        document.getElementById('config-modal').style.display = 'flex';
+        renderEditor();
+    }
+    function closeConfig() {
+        document.getElementById('config-modal').style.display = 'none';
+    }
+
+    function showToast(msg, isError = false) {
+        const toast = document.getElementById('toast-message');
+        toast.textContent = msg;
+        toast.style.background = isError ? 'rgba(220, 53, 69, 0.9)' : 'rgba(40, 167, 69, 0.9)';
+        toast.style.opacity = '1';
+        setTimeout(() => { toast.style.opacity = '0'; }, 3000);
+    }
+
+    function deleteItem(index) {
+        deleteTargetIndex = index;
+        document.getElementById('confirm-dialog').style.display = 'flex';
+    }
+    function closeConfirm() {
+        document.getElementById('confirm-dialog').style.display = 'none';
+        deleteTargetIndex = -1;
+    }
+    function executeDelete() {
+        if (deleteTargetIndex > -1) {
+            currentPlaylist.splice(deleteTargetIndex, 1);
+            renderEditor();
+            closeConfirm();
+        }
+    }
+
+    function escapeHtml(text) {
+        if (!text) return '';
+        return String(text).replace(/"/g, '&quot;');
+    }
+
+    function renderEditor() {
+        const container = document.getElementById('playlist-editor-container');
+        container.innerHTML = '';
+
+        currentPlaylist.forEach((item, index) => {
+            const card = document.createElement('div');
+            card.className = 'editor-card';
+
+            const controls = `
+                <div class="card-order">
+                    <button class="btn-mini" onclick="moveItem(${index}, -1)" ${index===0?'disabled':''}>▲</button>
+                    <span style="font-weight:bold; color:#FFD700">${index + 1}</span>
+                    <button class="btn-mini" onclick="moveItem(${index}, 1)" ${index===currentPlaylist.length-1?'disabled':''}>▼</button>
+                    <button class="btn-mini btn-delete" onclick="deleteItem(${index})">🗑️</button>
+                </div>
+            `;
+
+            let contentFields = `
+                <div class="form-group">
+                    <label>화면 유형</label>
+                    <input type="text" value="${translateType(item.type)}" disabled style="color:#aaa;">
+                </div>
+                <div class="form-group">
+                    <label>재생 시간 (초)</label>
+                    <input type="number" value="${item.duration}" onchange="updateItem(${index}, 'duration', this.value)">
+                </div>
+            `;
+
+            if (item.type === 'celebration_page') {
+                contentFields += `
+                    <div class="form-group"><label>이미지 URL</label><input type="text" value="${escapeHtml(item.imageUrl)}" onchange="updateItem(${index}, 'imageUrl', this.value)"></div>
+                    <div class="form-group"><label>축하 문구</label><input type="text" value="${escapeHtml(item.subText)}" onchange="updateItem(${index}, 'subText', this.value)"></div>
+                `;
+            } else if (item.type === 'image_page') {
+                contentFields += `
+                    <div class="form-group"><label>이미지 URL</label><input type="text" value="${escapeHtml(item.imageUrl)}" onchange="updateItem(${index}, 'imageUrl', this.value)"></div>
+                `;
+            } else if (item.type === 'youtube_page') {
+                contentFields += `
+                    <div class="form-group"><label>유튜브 영상 ID</label><input type="text" value="${escapeHtml(item.videoId)}" onchange="updateItem(${index}, 'videoId', this.value)"></div>
+                `;
+            } else if (item.type === 'info_page' || item.type === 'info_page_alt') {
+                const bgStr = Array.isArray(item.backgroundImages) ? item.backgroundImages.join(',') : (item.backgroundImage || '');
+                contentFields += `
+                    <div class="form-group"><label>배경 이미지 URL (콤마로 구분)</label><input type="text" value="${escapeHtml(bgStr)}" onchange="updateBgImages(${index}, '${item.type}', this.value)"></div>
+                `;
+                if (item.ddayTargets && item.ddayTargets.length > 0) {
+                    contentFields += `
+                        <div class="form-group"><label>D-Day 제목</label><input type="text" value="${escapeHtml(item.ddayTargets[0].title)}" onchange="updateDday(${index}, 'title', this.value)"></div>
+                        <div class="form-group"><label>D-Day 날짜 (YYYY-MM-DD)</label><input type="text" value="${escapeHtml(item.ddayTargets[0].date)}" onchange="updateDday(${index}, 'date', this.value)"></div>
+                    `;
+                }
+            }
+            
+            contentFields += `
+                 <div class="form-group">
+                    <label>눈 내림 효과</label>
+                    <select onchange="updateItem(${index}, 'snowEffect', this.value === 'true')">
+                        <option value="true" ${item.snowEffect ? 'selected' : ''}>켜기</option>
+                        <option value="false" ${!item.snowEffect ? 'selected' : ''}>끄기</option>
+                    </select>
+                </div>
+            `;
+
+            card.innerHTML = controls + `<div class="card-content">${contentFields}</div>`;
+            container.appendChild(card);
+        });
+    }
+
+    function translateType(type) {
+        const map = { 'celebration_page': '🎉 축하/공지', 'info_page': 'ℹ️ 정보(좌)', 'info_page_alt': 'ℹ️ 정보(중앙)', 'image_page': '🖼️ 이미지', 'youtube_page': '📺 유튜브', 'weather_page': '⛅ 날씨' };
+        return map[type] || type;
+    }
+
+    function updateItem(index, key, value) {
+        if (key === 'duration') value = Number(value);
+        currentPlaylist[index][key] = value;
+    }
+
+    function updateBgImages(index, type, val) {
+        if (type === 'info_page') {
+            currentPlaylist[index].backgroundImages = val.split(',').map(s => s.trim()).filter(s => s);
+        } else {
+            currentPlaylist[index].backgroundImage = val.trim();
+        }
+    }
+
+    function updateDday(index, key, val) {
+        if (!currentPlaylist[index].ddayTargets) currentPlaylist[index].ddayTargets = [{}];
+        currentPlaylist[index].ddayTargets[0][key] = val;
+    }
+
+    function moveItem(index, direction) {
+        const temp = currentPlaylist[index];
+        currentPlaylist[index] = currentPlaylist[index + direction];
+        currentPlaylist[index + direction] = temp;
+        renderEditor();
+    }
+
+    function showAddMenu() {
+        const type = prompt("추가할 번호 입력:\n1. 이미지\n2. 유튜브\n3. 공지사항");
+        let newItem = null;
+        if (type === '1') newItem = { type: 'image_page', duration: 10, imageUrl: 'https://placehold.co/1920x1080/333/fff?text=New+Image', snowEffect: false };
+        else if (type === '2') newItem = { type: 'youtube_page', duration: 20, videoId: 'VIDEO_ID', snowEffect: false };
+        else if (type === '3') newItem = { type: 'celebration_page', duration: 15, imageUrl: '', subText: '새 공지사항', snowEffect: true };
+        
+        if (newItem) {
+            currentPlaylist.push(newItem);
+            renderEditor();
+            setTimeout(() => {
+                const body = document.getElementById('playlist-editor-container');
+                body.scrollTop = body.scrollHeight;
+            }, 100);
+        }
+    }
+
+    // [핵심 수정] 저장 시 새로고침 없이 즉시 적용
+    function savePlaylist() {
+        try {
+            localStorage.setItem('signage_playlist', JSON.stringify(currentPlaylist));
+            showToast("저장 및 적용되었습니다!");
+        } catch (e) {
+            showToast("설정이 메모리에만 적용되었습니다. (브라우저 제한)", true);
+            console.error(e);
+        }
+        
+        // 새로고침 대신 즉시 재시작
+        closeConfig();
+        restartSignage();
+    }
+
+    function resetPlaylist() {
+        // 커스텀 다이얼로그 대신 간단히 처리 (필요시 교체)
+        if (confirm('정말 초기화 하시겠습니까?')) {
+            localStorage.removeItem('signage_playlist');
+            currentPlaylist = JSON.parse(JSON.stringify(PLAYLIST));
+            showToast("초기화되었습니다.");
+            closeConfig();
+            restartSignage();
+        }
+    }
+
+    // [New] 사이니지 재시작 헬퍼 함수
+    function restartSignage() {
+        // 기존 타이머 제거
+        if(clockInterval) clearInterval(clockInterval);
+        if(pageTimeout) clearTimeout(pageTimeout);
+        
+        // 인덱스 초기화 및 즉시 렌더링
+        currentPageIndex = 0;
+        showNextPage();
+    }
+
+    // ====================================================================================
+    // --- 엔진 로직 ---
     // ====================================================================================
 
     const signageContainer = document.getElementById('signage-container');
+    const snowContainer = document.getElementById('snow-container');
     let currentPageIndex = 0;
     let clockInterval, pageTimeout;
     let infoPageDisplayCount = 0;
 
-    // ★ 추가된 부분: 날씨 코드에 맞는 아이콘과 한글 설명을 반환하는 함수
+    function createSnowflakes() {
+        snowContainer.innerHTML = '';
+        const snowflakeCount = 50; 
+        for (let i = 0; i < snowflakeCount; i++) {
+            const snowflake = document.createElement('div');
+            snowflake.classList.add('snowflake');
+            snowflake.style.left = Math.random() * 100 + 'vw';
+            snowflake.style.animationDuration = Math.random() * 3 + 2 + 's'; 
+            snowflake.style.opacity = Math.random();
+            snowflake.style.width = snowflake.style.height = Math.random() * 10 + 5 + 'px';
+            snowContainer.appendChild(snowflake);
+        }
+    }
+
     function getWeatherInfo(code) {
         if (code === 0) return { icon: '☀️', description: '맑음' };
         if (code >= 1 && code <= 3) return { icon: '☁️', description: '구름 조금' };
-        if (code === 45 || code === 48) return { icon: '🌫️', description: '안개' };
-        if (code >= 51 && code <= 57) return { icon: '🌧️', description: '이슬비' };
-        if (code >= 61 && code <= 67) return { icon: '🌧️', description: '비' };
-        if (code >= 71 && code <= 77) return { icon: '❄️', description: '눈' };
-        if (code >= 80 && code <= 82) return { icon: '🌦️', description: '소나기' };
-        if (code >= 85 && code <= 86) return { icon: '🌨️', description: '눈 소나기' };
-        if (code >= 95 && code <= 99) return { icon: '⛈️', description: '천둥번개' };
+        if (code >= 51 && code <= 99) return { icon: '🌧️', description: '비/눈' };
         return { icon: '🤔', description: '알 수 없음' };
-    }
-
-    function isLunchTime() {
-        const now = new Date();
-        const hours = now.getHours();
-        const minutes = now.getMinutes();
-        if (hours === 11 && minutes >= 15 && minutes <= 40) {
-            return true;
-        }
-        return false;
     }
 
     function updateClockDisplay(timeEl, dateEl, dayEl) {
@@ -280,102 +583,98 @@
     function calculateDday(targetDateStr) {
         const targetDate = new Date(targetDateStr);
         const today = new Date();
-        targetDate.setHours(0, 0, 0, 0);
-        today.setHours(0, 0, 0, 0);
+        targetDate.setHours(0, 0, 0, 0); today.setHours(0, 0, 0, 0);
         return Math.ceil((targetDate - today) / (1000 * 60 * 60 * 24));
     }
     
-    async function renderPage(pageConfig) { // ★ 비동기 함수로 변경
-        [clockInterval, pageTimeout].forEach(id => clearInterval(id));
+    async function renderPage(pageConfig) {
+        if(clockInterval) clearInterval(clockInterval);
+        if(pageTimeout) clearTimeout(pageTimeout);
+        if (!pageConfig) return;
+
+        if (pageConfig.snowEffect) {
+            snowContainer.style.display = 'block';
+            if (snowContainer.childElementCount === 0) createSnowflakes();
+        } else {
+            snowContainer.style.display = 'none';
+        }
+
         let html = '';
         switch (pageConfig.type) {
+            case 'celebration_page':
+                html = `<div class="page celebration-page" style="background-image: url('${pageConfig.imageUrl}'), linear-gradient(rgba(0,0,0,0.5), rgba(0,0,0,0.5));"><div class="msg-container"><h2>${pageConfig.subText}</h2></div></div>`;
+                break;
             case 'info_page':
                 infoPageDisplayCount++;
-                const ddayItemsHTML = pageConfig.ddayTargets.map(target => {
+                const ddayItemsHTML = (pageConfig.ddayTargets || []).map(target => {
                     const ddayCount = calculateDday(target.date);
                     const ddayText = ddayCount > 0 ? `D-${ddayCount}` : (ddayCount === 0 ? 'D-Day!' : `D+${Math.abs(ddayCount)}`);
                     return `<div class="dday-item"><h2>${target.title}</h2><div class="dday-value">${ddayText}</div><div class="target-date">${target.date} 까지</div></div>`;
                 }).join('');
-                html = `<div class="page info-page">
-                            <div class="time-date-section"><div class="time-display"></div><div class="date-display"></div><div class="day-display"></div></div>
-                            <div class="dday-section">${ddayItemsHTML}</div>
-                        </div>`;
+                html = `<div class="page info-page"><div class="time-date-section"><div class="time-display"></div><div class="date-display"></div><div class="day-display"></div></div><div class="dday-section">${ddayItemsHTML}</div></div>`;
                 break;
             case 'info_page_alt':
-                 const altDdayItemsHTML = pageConfig.ddayTargets.map(target => {
+                 const altDdayItemsHTML = (pageConfig.ddayTargets || []).map(target => {
                     const ddayCount = calculateDday(target.date);
                     const ddayText = ddayCount > 0 ? `D-${ddayCount}` : (ddayCount === 0 ? 'D-Day!' : `D+${Math.abs(ddayCount)}`);
                     return `<div class="dday-item"><h2>${target.title}</h2><div class="dday-value">${ddayText}</div></div>`;
                 }).join('');
-                html = `<div class="page info-page-alt" style="background-image: url('${pageConfig.backgroundImage}')">
-                            <div class="time-display"></div><div class="date-display"></div>
-                            <div class="dday-section">${altDdayItemsHTML}</div>
-                        </div>`;
+                html = `<div class="page info-page-alt" style="background-image: url('${pageConfig.backgroundImage}')"><div class="time-display"></div><div class="date-display"></div><div class="dday-section">${altDdayItemsHTML}</div></div>`;
                 break;
             case 'image_page':
-                html = `<div class="page image-page"><img src="${pageConfig.imageUrl}" alt="페이지 이미지" onerror="this.onerror=null;this.src='https://placehold.co/1920x1080/222/fff?text=이미지를+찾을+수+없습니다.\\n(${pageConfig.imageUrl})';"></div>`;
+                html = `<div class="page image-page"><img src="${pageConfig.imageUrl}" alt="페이지 이미지" onerror="this.src='https://placehold.co/1920x1080/222/fff?text=No+Image';"></div>`;
                 break;
             case 'youtube_page':
-                const videoId = pageConfig.videoId;
-                html = `<div class="page youtube-page"><iframe src="https://www.youtube.com/embed/${videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${videoId}&playsinline=1&rel=0" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>`;
+                html = `<div class="page youtube-page"><iframe src="https://www.youtube.com/embed/${pageConfig.videoId}?autoplay=1&mute=1&controls=0&loop=1&playlist=${pageConfig.videoId}&playsinline=1&rel=0" allow="autoplay; encrypted-media" allowfullscreen></iframe></div>`;
                 break;
-            case 'quote_page':
-                if (pageConfig.quotes && pageConfig.quotes.length > 0) {
-                    const quote = pageConfig.quotes[Math.floor(Math.random() * pageConfig.quotes.length)];
-                    html = `<div class="page quote-page"><div class="quote-text">"${quote.text}"</div><div class="quote-author">- ${quote.author || '오늘의 지혜'} -</div></div>`;
-                } else {
-                    html = `<div class="page quote-page"><div class="quote-text">"표시할 명언이 없습니다."</div><div class="quote-author">- 관리자 -</div></div>`;
-                }
-                break;
-            // ★ 추가된 부분: weather_page 렌더링 로직
             case 'weather_page':
-                html = `<div class="page weather-page"><div id="loading-screen" class="page">날씨 정보를 불러오는 중...</div></div>`;
-                signageContainer.innerHTML = html; // 로딩 메시지 먼저 표시
+                // 로딩 화면 먼저 표시
+                html = `<div class="page weather-page"><div class="current-weather"><div class="details"><div class="location">판교 삼평동</div><div class="temp">--°</div><div class="desc">날씨 정보를 가져오는 중...</div></div></div></div>`;
+                signageContainer.innerHTML = html;
+                
                 try {
-                    // 판교 삼평동 위도, 경도
-                    const lat = 37.402;
-                    const lon = 127.105;
-                    // 시간별 예보(hourly) 추가 및 일별 예보(daily) 제거
-                    const weatherApiUrl = `https://api.open-meteo.com/v1/forecast?latitude=${lat}&longitude=${lon}&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul`;
-                    const response = await fetch(weatherApiUrl);
-                    const data = await response.json();
+                    const res = await fetch(`https://api.open-meteo.com/v1/forecast?latitude=37.402&longitude=127.105&current=temperature_2m,weather_code&hourly=temperature_2m,weather_code&daily=temperature_2m_max,temperature_2m_min&timezone=Asia%2FSeoul`);
+                    const data = await res.json();
                     
-                    const current = data.current;
+                    const cur = data.current;
                     const hourly = data.hourly;
                     const daily = data.daily;
-                    const currentInfo = getWeatherInfo(current.weather_code);
+                    const info = getWeatherInfo(cur.weather_code);
 
-                    // 시간별 예보 HTML 생성 로직
+                    // 시간별 예보 생성 로직 복구
                     let forecastHtml = '';
                     const now = new Date();
                     const currentHour = now.getHours();
-                    // 현재 시간 이후의 첫 예보 인덱스 찾기
+                    // 현재 시간 이후 데이터 찾기
                     const startIndex = hourly.time.findIndex(t => new Date(t).getHours() > currentHour);
-
-                    // 앞으로 6시간 동안의 예보를 표시
-                    for(let i = startIndex; i < startIndex + 6; i++) {
-                        if (hourly.time[i]) {
-                            const hourInfo = getWeatherInfo(hourly.weather_code[i]);
-                            const date = new Date(hourly.time[i]);
-                            const timeString = `${date.getHours()}시`;
-                            forecastHtml += `
-                                <div class="hour">
-                                    <div class="time">${timeString}</div>
-                                    <div class="icon">${hourInfo.icon}</div>
-                                    <div class="temp">${Math.round(hourly.temperature_2m[i])}°</div>
-                                </div>
-                            `;
+                    
+                    // 데이터가 있으면 6시간 예보 생성
+                    if (startIndex !== -1) {
+                        for(let i = startIndex; i < startIndex + 6; i++) {
+                            if (hourly.time[i]) {
+                                const hourInfo = getWeatherInfo(hourly.weather_code[i]);
+                                const date = new Date(hourly.time[i]);
+                                const timeString = `${date.getHours()}시`;
+                                forecastHtml += `
+                                    <div class="hour">
+                                        <div class="time">${timeString}</div>
+                                        <div class="icon">${hourInfo.icon}</div>
+                                        <div class="temp">${Math.round(hourly.temperature_2m[i])}°</div>
+                                    </div>
+                                `;
+                            }
                         }
                     }
 
+                    // 최종 HTML 조립
                     html = `
                         <div class="page weather-page">
                             <div class="current-weather">
-                                <div class="icon">${currentInfo.icon}</div>
+                                <div class="icon">${info.icon}</div>
                                 <div class="details">
                                     <div class="location">판교 삼평동</div>
-                                    <div class="temp">${Math.round(current.temperature_2m)}°</div>
-                                    <div class="desc">${currentInfo.description}</div>
+                                    <div class="temp">${Math.round(cur.temperature_2m)}°</div>
+                                    <div class="desc">${info.description}</div>
                                     <div class="minmax">최고 ${Math.round(daily.temperature_2m_max[0])}° / 최저 ${Math.round(daily.temperature_2m_min[0])}°</div>
                                 </div>
                             </div>
@@ -384,69 +683,61 @@
                             </div>
                         </div>
                     `;
-                } catch (error) {
-                    console.error("날씨 정보 로딩 실패:", error);
-                    html = `<div class="page weather-page"><div id="loading-screen" class="page">날씨 정보를 가져올 수 없습니다.</div></div>`;
+                } catch(e) {
+                    console.error("날씨 로딩 실패:", e);
+                    html = `<div class="page weather-page"><div class="current-weather"><div class="details"><div class="desc">날씨 정보를 불러올 수 없습니다.</div></div></div></div>`;
                 }
                 break;
         }
         signageContainer.innerHTML = html;
 
-        if (pageConfig.type === 'info_page' || pageConfig.type === 'info_page_alt') {
+        if (pageConfig.type.startsWith('info_page')) {
             const timeEl = document.querySelector('.time-display'), dateEl = document.querySelector('.date-display'), dayEl = document.querySelector('.day-display');
             updateClockDisplay(timeEl, dateEl, dayEl);
             clockInterval = setInterval(() => updateClockDisplay(timeEl, dateEl, dayEl), 1000);
-
             if (pageConfig.type === 'info_page' && pageConfig.backgroundImages && pageConfig.backgroundImages.length > 0) {
-                const bgIndexToShow = Math.floor((infoPageDisplayCount -1) / 3) % pageConfig.backgroundImages.length;
-                const infoPageDiv = document.querySelector('.info-page');
-                infoPageDiv.style.backgroundImage = `url('${pageConfig.backgroundImages[bgIndexToShow]}')`;
+                const bgIndex = Math.floor((infoPageDisplayCount -1) / 3) % pageConfig.backgroundImages.length;
+                document.querySelector('.info-page').style.backgroundImage = `url('${pageConfig.backgroundImages[bgIndex]}')`;
             }
         }
     }
 
-    async function showNextPage() { // ★ 비동기 함수로 변경
-        let activePlaylist;
-        if (isLunchTime()) {
-            activePlaylist = PLAYLIST.filter(p => p.type.startsWith('info_page') || p.imageUrl === 'images/식단표.png');
-        } else {
-            activePlaylist = PLAYLIST;
+    async function showNextPage() {
+        let list = currentPlaylist;
+        if (!list || list.length === 0) list = PLAYLIST;
+
+        // [New] 점심시간 로직 강화 (11시~12시)
+        function isLunchTime() {
+            const now = new Date();
+            const hour = now.getHours();
+            return hour === 11; // 11시 00분 ~ 11시 59분
         }
 
-        if (currentPageIndex >= activePlaylist.length) {
-            currentPageIndex = 0;
+        // 점심시간이면 식단표(또는 특정 이미지) 페이지만 필터링해서 재생
+        if (isLunchTime()) {
+            const lunchPages = list.filter(p => p.imageUrl && p.imageUrl.includes('식단표'));
+            // 만약 식단표 페이지가 하나라도 있다면 그것들만 재생
+            if (lunchPages.length > 0) {
+                list = lunchPages;
+            }
         }
         
-        const currentPage = activePlaylist[currentPageIndex];
-        await renderPage(currentPage); // ★ await 추가
+        if (currentPageIndex >= list.length) currentPageIndex = 0;
+        const page = list[currentPageIndex];
+        await renderPage(page);
 
         pageTimeout = setTimeout(() => {
-            currentPageIndex = (currentPageIndex + 1) % activePlaylist.length;
+            currentPageIndex = (currentPageIndex + 1) % list.length;
             showNextPage();
-        }, currentPage.duration * 1000);
+        }, page.duration * 1000);
     }
 
     document.addEventListener('DOMContentLoaded', () => {
+        loadPlaylistData();
         showNextPage();
-        const oneHourInMs = 60 * 60 * 1000;
-        setTimeout(() => {
-            window.location.reload(true); 
-        }, oneHourInMs);
+        // 1시간마다 새로고침 (메모리 정리용, 필요시 제거 가능)
+        // setTimeout(() => window.location.reload(true), 3600000);
     });
     </script>
 </body>
 </html>
-
-
-
-
-
-
-
-
-
-
-
-
-
-
